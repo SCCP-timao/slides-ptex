@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Análise PL das Fake News</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Outfit:wght@200..700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#0A0B0E;overflow:hidden}
+body{font-family:'DM Sans',Arial,sans-serif;color:#F5F2F1}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;background:#0A0B0E;overflow:hidden;transform-origin:center center}
+.abs{position:absolute}
+
+/* camada persistente: círculos, pontos, cabeçalho */
+.orb{position:absolute;transition:left 1.3s cubic-bezier(.65,0,.35,1),top 1.3s cubic-bezier(.65,0,.35,1),width 1.3s cubic-bezier(.65,0,.35,1),height 1.3s cubic-bezier(.65,0,.35,1)}
+.orb svg{display:block;width:100%;height:100%}
+#dots{position:absolute;width:72px;height:72px;transition:left 1.1s cubic-bezier(.65,0,.35,1)}
+.hd{position:absolute;top:60px;font-size:24px;font-weight:500;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+#hdLeft{left:128px;color:#C9C2C4}
+#hdLine{position:absolute;left:950px;top:73px;width:410px;border-top:2px solid #C41F3B}
+#hdRight{left:1392px;width:400px;text-align:right;color:#F5F2F1;transition:opacity .35s ease,transform .6s cubic-bezier(.16,1,.3,1)}
+#hdRight.swap{opacity:0;transform:translateY(-8px)}
+
+/* slides */
+.slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .4s ease}
+.slide.active{opacity:1;pointer-events:auto;transition:opacity .5s ease .2s}
+
+/* entradas: curvas não lineares, atrasos irregulares */
+.b{opacity:0;transition:opacity .35s ease,transform .35s ease}
+.slide.active .b{opacity:1;transform:none;
+  transition:opacity .9s cubic-bezier(.22,.8,.3,1) calc(var(--d,0s) + .45s),
+             transform 1.15s cubic-bezier(.16,1,.3,1) calc(var(--d,0s) + .45s)}
+.b.rise{transform:translateY(44px)}
+.b.fade{transform:none}
+.b.left{transform:translateX(-90px)}
+.b.pop{transform:scale(.9)}
+.slide.active .b.pop{transition:opacity .7s ease calc(var(--d,0s) + .45s),
+             transform 1.1s cubic-bezier(.34,1.56,.64,1) calc(var(--d,0s) + .45s)}
+
+/* tipografia */
+.h1{font-family:'Outfit',Arial,sans-serif;font-weight:300;font-size:68px;line-height:1.15;text-align:center}
+.h2{font-family:'Outfit',Arial,sans-serif;font-weight:300;font-size:80px;line-height:1.1}
+.h2.l{left:128px;bottom:380px;width:620px}
+.sub{left:128px;top:730px;width:520px;font-size:30px;line-height:1.4;color:#DDD6D8}
+.eb{font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#FF8B9A}
+.lbl{font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#FFC2CB}
+.card{position:absolute;display:flex;flex-direction:column;border-radius:4px}
+.card p{color:#F5F2F1}
+.bar{position:absolute;display:flex;flex-direction:column;justify-content:center;padding:28px 40px;background:linear-gradient(90deg,#B01D37 0%,#4B0C19 60%,#0A0B0E 100%)}
+.bar p{font-size:24px;line-height:1.4}
+.who{position:absolute;width:320px}
+.who h3{font-size:26px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#FFC2CB;margin-bottom:10px}
+.who p{font-size:24px;line-height:1.35}
+.rule{position:absolute;left:760px;width:1032px;border-top:1px solid #8A7B80}
+.ring{position:absolute;left:1728px;width:64px;height:64px;border-radius:50%;background:#C41F3B}
+.arw{position:absolute;left:1744px;width:32px;height:16px;transform-origin:center}
+.arw svg{display:block;width:32px;height:16px}
+.big{font-size:30px;line-height:1.4}
+
+/* progresso */
+#bar{position:absolute;left:0;bottom:0;height:4px;background:#C41F3B;width:0;transition:width .9s cubic-bezier(.65,0,.35,1)}
+
+@media (prefers-reduced-motion:reduce){
+  .orb,#dots,#bar,.slide,.b{transition:none!important}
+  .slide.active .b{transition:none!important}
+}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- círculos persistentes: se movem entre os slides -->
+  <div class="orb" id="orbA"><svg viewBox="0 0 700 560" aria-hidden="true"><defs><linearGradient id="gA" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#C41F3B"/><stop offset=".5" stop-color="#6A0F20"/><stop offset="1" stop-color="#0A0B0E"/></linearGradient></defs><circle cx="470" cy="110" r="340" fill="url(#gA)"/></svg></div>
+  <div class="orb" id="orbB"><svg viewBox="0 0 640 540" aria-hidden="true"><defs><linearGradient id="gB" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C41F3B"/><stop offset=".5" stop-color="#6A0F20"/><stop offset="1" stop-color="#0A0B0E"/></linearGradient></defs><circle cx="170" cy="430" r="330" fill="url(#gB)"/></svg></div>
+
+  <svg id="dots" style="left:128px;top:150px" viewBox="0 0 72 72" aria-hidden="true"><g fill="#F5F2F1"><circle cx="8" cy="8" r="4"/><circle cx="36" cy="8" r="4"/><circle cx="64" cy="8" r="4"/><circle cx="8" cy="36" r="4"/><circle cx="36" cy="36" r="4"/><circle cx="64" cy="36" r="4"/><circle cx="8" cy="64" r="4"/><circle cx="36" cy="64" r="4"/><circle cx="64" cy="64" r="4"/></g></svg>
+
+  <p class="hd" id="hdLeft">Produção de texto • Análise de reportagem</p>
+  <div id="hdLine"></div>
+  <p class="hd" id="hdRight">01</p>
+
+  <!-- 1 · capa -->
+  <section class="slide" data-a="1" data-b="1" data-tag="01" data-dots="128">
+    <p class="abs b fade" style="--d:.1s;left:700px;top:250px;width:520px;font-size:24px;font-weight:500;letter-spacing:2px;text-align:center;text-transform:uppercase;background:#C41F3B;color:#FFF5F6;padding:12px 0;border-radius:999px">Produção de texto • 8º ano</p>
+    <h1 class="abs b rise h1" style="--d:.45s;left:128px;top:340px;width:1664px">Ministra que vetou púlpito de Lula deu tom do<br>governo no PL das Fake News</h1>
+    <p class="abs b fade" style="--d:.95s;left:460px;top:540px;width:1000px;font-size:32px;line-height:1.4;text-align:center;color:#DDD6D8">Análise da reportagem sobre Estela Aranha e o projeto de regulamentação das redes sociais.</p>
+    <p class="abs b rise" style="--d:1.5s;left:460px;top:780px;width:1000px;font-size:32px;font-weight:600;text-align:center">Vitória • Maria Clara • Amanda • Isabela</p>
+    <p class="abs b fade" style="--d:1.6s;left:460px;top:840px;width:1000px;font-size:26px;text-align:center;color:#DDD6D8">Reportagem de Vinícius Valfré</p>
+  </section>
+
+  <!-- 2 · ficha e tema -->
+  <section class="slide" data-a=".7" data-b="1.25" data-tag="Ficha e tema • 02" data-dots="128">
+    <h2 class="abs b rise h2 l" style="--d:.1s">Ficha e tema da reportagem</h2>
+    <p class="abs b fade sub" style="--d:.65s">Os dados de identificação do texto e o assunto central apresentado pelo jornalista.</p>
+    <div class="card b rise" style="--d:.45s;left:760px;top:180px;width:500px;height:420px;gap:16px;padding:36px;background:linear-gradient(180deg,#B01D37 0%,#4B0C19 55%,#1A0A0E 100%)">
+      <h3 class="lbl">Veículo, data e autor</h3>
+      <p style="font-size:26px;line-height:1.4">Veículo de comunicação: jornal O Estado de S. Paulo, conhecido como Estadão.</p>
+      <p style="font-size:26px;line-height:1.4">Data de publicação: 03/10/2026, conforme anotado na atividade.</p>
+      <p style="font-size:26px;line-height:1.4">Autor: Vinícius Valfré.</p>
+    </div>
+    <div class="card b pop" style="--d:.95s;left:1292px;top:180px;width:500px;height:420px;gap:16px;padding:36px;background:linear-gradient(180deg,#1A0A0E 0%,#4B0C19 45%,#B01D37 100%)">
+      <h3 class="lbl">Subtítulo</h3>
+      <p style="font-family:'Outfit',Arial,sans-serif;font-size:32px;font-weight:300;line-height:1.4">“Uma das principais articuladoras do projeto, Estela Aranha propôs ampliar a responsabilidade das plataformas digitais.”</p>
+    </div>
+    <div class="card b left" style="--d:1.5s;left:760px;top:626px;width:1032px;height:306px;gap:20px;padding:40px;background:linear-gradient(90deg,#B01D37 0%,#4B0C19 55%,#1A0A0E 100%)">
+      <h3 class="lbl">Tema principal</h3>
+      <p style="font-size:30px;line-height:1.45">A reportagem aborda a atuação de Estela Aranha na elaboração e na defesa do PL das Fake News. O projeto buscava regulamentar as plataformas digitais e ampliar a responsabilidade delas pelos conteúdos publicados nas redes sociais.</p>
+    </div>
+  </section>
+
+  <!-- 3 · fato e envolvidos -->
+  <section class="slide" data-a=".65" data-b="1.3" data-tag="Fato e envolvidos • 03" data-dots="128">
+    <h2 class="abs b rise h2 l" style="--d:.1s">O que aconteceu e quem estava envolvido?</h2>
+    <p class="abs b fade sub" style="--d:.7s">O fato apresentado e as pessoas citadas na reportagem.</p>
+    <p class="abs b fade eb" style="--d:.5s;left:760px;top:128px;width:900px">O desenvolvimento do fato</p>
+    <div class="bar b left" style="--d:.6s;left:760px;top:170px;width:1032px;height:165px"><p>Durante as discussões do PL das Fake News, Estela Aranha foi uma das principais articuladoras do governo e defendeu que as plataformas digitais tivessem mais responsabilidade pelo conteúdo publicado.</p></div>
+    <div class="bar b left" style="--d:1.15s;left:790px;top:349px;width:1002px;height:165px"><p>Ela discordou publicamente de pontos do texto apresentado pelo relator Orlando Silva, pois defendia critérios mais específicos para responsabilizar as empresas.</p></div>
+    <div class="bar b left" style="--d:1.55s;left:820px;top:528px;width:972px;height:125px"><p>O debate também envolveu críticas de opositores, que temiam que as regras pudessem levar à censura.</p></div>
+    <p class="abs b fade eb" style="--d:1.9s;left:760px;top:672px;width:900px">Quem estava envolvido?</p>
+    <div class="who b rise" style="--d:2.05s;left:760px;top:712px"><h3>Estela Aranha</h3><p>Foi uma das principais articuladoras do governo no debate e defendia ampliar a responsabilidade das plataformas digitais.</p></div>
+    <div class="who b rise" style="--d:2.3s;left:1116px;top:712px"><h3>Orlando Silva</h3><p>Deputado e relator do PL das Fake News. A reportagem menciona declarações dele e as divergências com Estela.</p></div>
+    <div class="who b rise" style="--d:2.45s;left:1472px;top:712px"><h3>Flávio Dino</h3><p>É mencionado por sua participação no governo como ministro da Justiça durante as discussões sobre o projeto.</p></div>
+  </section>
+
+  <!-- 4 · fontes e exemplos -->
+  <section class="slide" data-a="1.15" data-b=".9" data-tag="Fontes e exemplos • 04" data-dots="128">
+    <h2 class="abs b rise h2 l" style="--d:.1s">Fontes e exemplos</h2>
+    <p class="abs b fade sub" style="--d:.65s">A matéria utiliza pessoas citadas e documentos, com referências concretas para explicar o debate.</p>
+
+    <p class="abs b rise eb" style="--d:.5s;left:760px;top:170px;width:600px">Pessoas</p>
+    <p class="abs b rise big" style="--d:.6s;left:760px;top:215px;width:900px">São mencionados Estela Aranha, Orlando Silva e Flávio Dino. A reportagem apresenta declarações e posições dessas pessoas sobre a regulamentação das redes sociais.</p>
+    <div class="rule b fade" style="--d:.9s;top:375px"></div>
+    <div class="ring b pop" style="--d:.8s;top:150px"></div>
+    <div class="arw b pop" style="--d:.8s;top:174px;transform:rotate(-45deg)"><svg viewBox="0 0 32 16"><path d="M0 5h20V0l12 8-12 8v-5H0z" fill="#F5F2F1"/></svg></div>
+
+    <p class="abs b rise eb" style="--d:1.25s;left:760px;top:405px;width:600px">Documentos</p>
+    <p class="abs b rise big" style="--d:1.35s;left:760px;top:450px;width:900px">Entre os documentos citados estão o PL 2.630/2020, a Portaria nº 351/2023 e o Marco Civil da Internet.</p>
+    <div class="rule b fade" style="--d:1.6s;top:565px"></div>
+    <div class="ring b pop" style="--d:1.5s;top:385px"></div>
+    <div class="arw b pop" style="--d:1.5s;top:409px;transform:rotate(-45deg)"><svg viewBox="0 0 32 16"><path d="M0 5h20V0l12 8-12 8v-5H0z" fill="#F5F2F1"/></svg></div>
+
+    <p class="abs b rise eb" style="--d:1.95s;left:760px;top:595px;width:600px">Exemplos citados</p>
+    <p class="abs b rise big" style="--d:2.05s;left:760px;top:640px;width:900px">A matéria cita o PL 2.630/2020 e a Portaria nº 351/2023. Também apresenta exemplos de conteúdos relacionados à violência extrema e à apologia de massacres em escolas, que ajudam a explicar a preocupação com a circulação de publicações prejudiciais nas redes sociais.</p>
+    <div class="ring b pop" style="--d:2.25s;top:575px"></div>
+    <div class="arw b pop" style="--d:2.25s;top:599px;transform:rotate(-45deg)"><svg viewBox="0 0 32 16"><path d="M0 5h20V0l12 8-12 8v-5H0z" fill="#F5F2F1"/></svg></div>
+  </section>
+
+  <!-- 5 · conclusão e recursos visuais -->
+  <section class="slide" data-a="1.3" data-b="1.2" data-tag="Conclusão • 05" data-dots="1720">
+    <p class="abs b fade eb" style="--d:.1s;left:128px;top:150px;width:700px">Conclusão</p>
+    <h2 class="abs b rise h2" style="--d:.2s;left:128px;top:190px;width:1100px;font-size:64px">Qual é a conclusão da reportagem?</h2>
+    <div class="card b pop" style="--d:.8s;left:128px;top:300px;width:1664px;height:290px;gap:20px;padding:40px 64px;background:linear-gradient(90deg,#B01D37 0%,#4B0C19 55%,#1A0A0E 100%)">
+      <h3 class="lbl">Fechamento</h3>
+      <p style="font-size:32px;line-height:1.45">A reportagem termina apresentando a trajetória profissional de Estela Aranha e sua atuação no Tribunal Superior Eleitoral. O texto destaca sua experiência na área jurídica e sua participação em temas ligados às políticas públicas e à regulamentação das plataformas digitais.</p>
+    </div>
+    <p class="abs b fade eb" style="--d:1.5s;left:128px;top:650px;width:700px">Recursos visuais</p>
+    <p class="abs b rise" style="--d:1.65s;left:128px;top:695px;width:1000px;font-size:32px;line-height:1.4">A reportagem utiliza uma fotografia de Estela Aranha durante sua atuação no Tribunal Superior Eleitoral (TSE).</p>
+    <p class="abs b fade" style="--d:2s;left:128px;top:800px;width:1000px;font-size:26px;line-height:1.4;color:#DDD6D8">A imagem ajuda o leitor a identificar a personagem central da matéria e complementa as informações do texto.</p>
+    <h2 class="abs b pop h2" style="--d:2.6s;left:1192px;top:680px;width:600px;font-size:72px;text-align:right">Obrigada pela atenção!</h2>
+  </section>
+
+  <div id="bar"></div>
+</div>
+
+<script>
+(function(){
+  var stage=document.getElementById('stage');
+  var slides=Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var orbA=document.getElementById('orbA'), orbB=document.getElementById('orbB');
+  var dots=document.getElementById('dots'), hdRight=document.getElementById('hdRight');
+  var bar=document.getElementById('bar');
+  var cur=-1;
+
+  function fit(){
+    var s=Math.min(window.innerWidth/1920, window.innerHeight/1080);
+    stage.style.transform='translate(-50%,-50%) scale('+s+')';
+  }
+
+  function place(a,b){
+    var wa=700*a, ha=560*a;
+    orbA.style.width=wa+'px'; orbA.style.height=ha+'px';
+    orbA.style.left=(1920-wa)+'px'; orbA.style.top='0px';
+    var wb=640*b, hb=540*b;
+    orbB.style.width=wb+'px'; orbB.style.height=hb+'px';
+    orbB.style.left='0px'; orbB.style.top=(1080-hb)+'px';
+  }
+
+  function go(i){
+    i=Math.max(0,Math.min(slides.length-1,i));
+    if(i===cur) return;
+    var prev=cur; cur=i;
+    var s=slides[i];
+    if(prev>=0) slides[prev].classList.remove('active');
+    place(parseFloat(s.dataset.a), parseFloat(s.dataset.b));
+    dots.style.left=s.dataset.dots+'px';
+    hdRight.classList.add('swap');
+    setTimeout(function(){ hdRight.textContent=s.dataset.tag; hdRight.classList.remove('swap'); },250);
+    void s.offsetWidth;
+    s.classList.add('active');
+    bar.style.width=((i+1)/slides.length*100)+'%';
+    if(history.replaceState) history.replaceState(null,'','#'+(i+1));
+  }
+  function next(){ go(cur+1); }
+  function prev(){ go(cur-1); }
+
+  window.addEventListener('resize',fit);
+  window.addEventListener('keydown',function(e){
+    var k=e.key;
+    if(k==='ArrowRight'||k==='ArrowDown'||k==='PageDown'||k===' '||k==='Enter'){e.preventDefault();next();}
+    else if(k==='ArrowLeft'||k==='ArrowUp'||k==='PageUp'||k==='Backspace'){e.preventDefault();prev();}
+    else if(k==='Home'){go(0);} else if(k==='End'){go(slides.length-1);}
+    else if(k==='f'||k==='F'){
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();
+      else document.exitFullscreen&&document.exitFullscreen();
+    }
+  });
+  document.addEventListener('click',function(e){
+    if(e.clientX<window.innerWidth*0.3) prev(); else next();
+  });
+  var tx=null;
+  document.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(tx===null) return;
+    var dx=e.changedTouches[0].clientX-tx; tx=null;
+    if(Math.abs(dx)>40){ dx<0?next():prev(); }
+  });
+  window.addEventListener('hashchange',function(){
+    var n=parseInt(location.hash.slice(1),10);
+    if(n) go(n-1);
+  });
+
+  fit();
+  var start=parseInt(location.hash.slice(1),10);
+  var s0=slides[0];
+  place(parseFloat(s0.dataset.a), parseFloat(s0.dataset.b));
+  requestAnimationFrame(function(){ go(start?start-1:0); });
+})();
+</script>
+</body>
+</html>
